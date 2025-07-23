@@ -1,0 +1,29 @@
+class Solution(object):
+    def maximumGain(self, s, x, y):
+        """
+        :type s: str
+        :type x: int
+        :type y: int
+        :rtype: int
+        """
+        def remove_pair(s, first, second, points):
+            stack = []
+            score = 0
+            for ch in s:
+                if stack and stack[-1] == first and ch == second:
+                    stack.pop()
+                    score += points
+                else:
+                    stack.append(ch)
+            return ''.join(stack), score
+        
+        # Always remove the higher scoring pair first
+        if x > y:
+            s, score1 = remove_pair(s, 'a', 'b', x)  # remove "ab"
+            s, score2 = remove_pair(s, 'b', 'a', y)  # remove "ba"
+        else:
+            s, score1 = remove_pair(s, 'b', 'a', y)  # remove "ba"
+            s, score2 = remove_pair(s, 'a', 'b', x)  # remove "ab"
+        
+        return score1 + score2
+        
