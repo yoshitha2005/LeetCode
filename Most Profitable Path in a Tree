@@ -1,0 +1,47 @@
+class Solution(object):
+    def mostProfitablePath(self, edges, bob, amount):
+        from collections import defaultdict
+
+        graph = defaultdict(list)
+        for u, v in edges:
+            graph[u].append(v)
+            graph[v].append(u)
+        
+        # Step 1: Compute Bob's path from bob to root (node 0)
+        def dfs_bob(node, parent):
+            if node == 0:
+                return [0]
+            for neighbor in graph[node]:
+                if neighbor != parent:
+                    path = dfs_bob(neighbor, node)
+                    if path:
+                        return path + [node]
+            return []
+
+        bob_path = dfs_bob(bob, -1)
+        # Record the time when Bob reaches each node
+        bob_time = {node: i for i, node in enumerate(reversed(bob_path))}
+
+        # Step 2: DFS for Alice from root to leaves
+        def dfs_alice(node, parent, time):
+            income = 0
+            if node in bob_time:
+                if bob_time[node] > time:
+                    income += amount[node]
+                elif bob_time[node] == time:
+                    income += amount[node] // 2
+                # If Bob already passed, Alice gets nothing
+            else:
+                income += amount[node]
+            
+            max_income = float('-inf')
+            for neighbor in graph[node]:
+                if neighbor != parent:
+                    sub_income = dfs_alice(neighbor, node, time + 1)
+                    max_income = max(max_income, sub_income)
+
+            if max_income == float('-inf'):  # Leaf node
+                return income
+            return income + max_income
+
+        return dfs_alice(0, -1, 0)
