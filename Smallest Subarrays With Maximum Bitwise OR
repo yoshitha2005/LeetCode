@@ -1,0 +1,31 @@
+from math import inf
+
+class Solution:
+    def smallestSubarrays(self, nums):
+        n = len(nums)
+        maxOR = [0] * n
+        answer = [0] * n
+        
+        # Step 1: Compute suffix maxOR
+        maxOR[-1] = nums[-1]
+        for i in range(n-2, -1, -1):
+            maxOR[i] = maxOR[i+1] | nums[i]
+        
+        # Step 2: Track nearest index for each bit
+        nextBit = [inf] * 32
+        
+        for i in range(n-1, -1, -1):
+            # update nextBit for bits in nums[i]
+            for b in range(32):
+                if (nums[i] >> b) & 1:
+                    nextBit[b] = i
+            
+            # find the farthest index needed to cover all bits in maxOR[i]
+            farthest = i
+            for b in range(32):
+                if (maxOR[i] >> b) & 1:
+                    farthest = max(farthest, nextBit[b])
+            
+            answer[i] = farthest - i + 1
+        
+        return answer
