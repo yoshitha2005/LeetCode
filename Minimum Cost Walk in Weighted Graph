@@ -1,0 +1,48 @@
+class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0]*n
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, a, b):
+        ra, rb = self.find(a), self.find(b)
+        if ra == rb:
+            return
+        if self.rank[ra] < self.rank[rb]:
+            self.parent[ra] = rb
+        elif self.rank[ra] > self.rank[rb]:
+            self.parent[rb] = ra
+        else:
+            self.parent[rb] = ra
+            self.rank[ra] += 1
+
+class Solution:
+    def minimumCost(self, n: int, edges: list[list[int]], query: list[list[int]]) -> list[int]:
+        dsu = DSU(n)
+        # union all edges to form components
+        for u, v, w in edges:
+            dsu.union(u, v)
+
+        # compute bitwise AND of all edges per final component root
+        comp_and = {}
+        for u, v, w in edges:
+            r = dsu.find(u)  # final root after all unions
+            if r in comp_and:
+                comp_and[r] &= w
+            else:
+                comp_and[r] = w
+
+        ans = []
+        for s, t in query:
+            rs, rt = dsu.find(s), dsu.find(t)
+            if rs != rt:
+                ans.append(-1)
+            else:
+                # since s and t are connected there must be at least one edge in that component
+                ans.append(comp_and[rs])
+        return ans
+V
