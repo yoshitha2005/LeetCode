@@ -1,0 +1,64 @@
+class Solution(object):
+    def minimumScore(self, nums, edges):
+        from collections import defaultdict
+        import sys
+        sys.setrecursionlimit(10000)
+
+        n = len(nums)
+        tree = defaultdict(list)
+        for u, v in edges:
+            tree[u].append(v)
+            tree[v].append(u)
+
+        xor = [0] * n
+        in_time = [0] * n
+        out_time = [0] * n
+        parent = [-1] * n
+        time = [0]
+
+        # DFS to compute xor and in/out time
+        def dfs(u, p):
+            xor[u] = nums[u]
+            in_time[u] = time[0]
+            time[0] += 1
+            parent[u] = p
+            for v in tree[u]:
+                if v != p:
+                    dfs(v, u)
+                    xor[u] ^= xor[v]
+            out_time[u] = time[0]
+            time[0] += 1
+
+        dfs(0, -1)
+
+        # check if a is ancestor of b
+        def is_ancestor(a, b):
+            return in_time[a] <= in_time[b] and out_time[b] <= out_time[a]
+
+        res = float('inf')
+        # For all pairs of edges
+        edge_nodes = []
+        for u, v in edges:
+            if parent[v] == u:
+                edge_nodes.append(v)
+            else:
+                edge_nodes.append(u)
+
+        for i in range(len(edge_nodes)):
+            for j in range(i+1, len(edge_nodes)):
+                a = edge_nodes[i]
+                b = edge_nodes[j]
+                if is_ancestor(a, b):
+                    x = xor[b]
+                    y = xor[a] ^ xor[b]
+                    z = xor[0] ^ xor[a]
+                elif is_ancestor(b, a):
+                    x = xor[a]
+                    y = xor[b] ^ xor[a]
+                    z = xor[0] ^ xor[b]
+                else:
+                    x = xor[a]
+                    y = xor[b]
+                    z = xor[0] ^ xor[a] ^ xor[b]
+                res = min(res, max(x, y, z) - min(x, y, z))
+        return res

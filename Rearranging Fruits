@@ -1,0 +1,41 @@
+class Solution(object):
+    def minCost(self, basket1, basket2):
+        """
+        :type basket1: List[int]
+        :type basket2: List[int]
+        :rtype: int
+        """
+        from collections import Counter
+
+        count1 = Counter(basket1)
+        count2 = Counter(basket2)
+        total = count1 + count2
+
+        # Check if it's possible to make baskets equal
+        for fruit, freq in total.items():
+            if freq % 2 != 0:
+                return -1  # Impossible
+
+        extra1 = []
+        extra2 = []
+
+        # Find extra fruits in each basket
+        for fruit in total:
+            diff = count1[fruit] - count2[fruit]
+            if diff > 0:
+                extra1.extend([fruit] * (diff // 2))
+            elif diff < 0:
+                extra2.extend([fruit] * (-diff // 2))
+
+        # Sort for greedy matching
+        extra1.sort()
+        extra2.sort(reverse=True)
+
+        # Minimum fruit value in both baskets (used for double swap trick)
+        min_fruit = min(min(basket1), min(basket2))
+        cost = 0
+
+        for a, b in zip(extra1, extra2):
+            cost += min(min(a, b), 2 * min_fruit)
+
+        return cost

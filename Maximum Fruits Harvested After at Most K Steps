@@ -1,0 +1,53 @@
+import bisect
+
+class Solution:
+    def maxTotalFruits(self, fruits: list[list[int]], startPos: int, k: int) -> int:
+        n = len(fruits)
+        positions = [fruit[0] for fruit in fruits]
+        amounts = [fruit[1] for fruit in fruits]
+
+        prefix_sum = [0] * (n + 1)
+        for i in range(n):
+            prefix_sum[i + 1] = prefix_sum[i] + amounts[i]
+
+        def get_fruits_in_range(left_idx, right_idx):
+            if left_idx > right_idx:
+                return 0
+            return prefix_sum[right_idx + 1] - prefix_sum[left_idx]
+
+        max_fruits = 0
+        left = 0
+        
+        for right in range(n):
+            dist_left = positions[left]
+            dist_right = positions[right]
+            
+            steps_needed = 0
+            
+            if startPos < dist_left:
+                steps_needed = dist_right - startPos
+            elif startPos > dist_right:
+                steps_needed = startPos - dist_left
+            else:
+                steps_needed = min((startPos - dist_left) * 2 + (dist_right - startPos),
+                                   (dist_right - startPos) * 2 + (startPos - dist_left))
+            
+            while steps_needed > k and left <= right:
+                left += 1
+                if left > right:
+                    break
+
+                dist_left = positions[left]
+                
+                if startPos < dist_left:
+                    steps_needed = dist_right - startPos
+                elif startPos > dist_right:
+                    steps_needed = startPos - dist_left
+                else:
+                    steps_needed = min((startPos - dist_left) * 2 + (dist_right - startPos),
+                                       (dist_right - startPos) * 2 + (startPos - dist_left))
+            
+            if steps_needed <= k:
+                max_fruits = max(max_fruits, get_fruits_in_range(left, right))
+
+        return max_fruits
